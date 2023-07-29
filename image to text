@@ -1,25 +1,40 @@
-try:
-    from PIL import Image
-except ImportError:
-    import Image
+import cv2
 import pytesseract
 
 # You may need to update the path depending on where your tesseract executable is located
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract'
 
-def ocr_core(filename):
-    """
-    This function will handle the core OCR processing of images.
-    """
-    text = pytesseract.image_to_string(Image.open(filename))  # We'll use Pillow's Image class to open the image and pytesseract to detect the string in the image
+def preprocess_image(image_path):
+    # Load the image from disk
+    image = cv2.imread(image_path)
+
+    # Convert the image to grayscale
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Use adaptive thresholding to binarize the image
+    # The algorithm calculates the threshold for a small region of the image
+    # So we get different thresholds for different regions of the same image
+    # And it gives us better results for images with varying illumination
+    binary_image = cv2.adaptiveThreshold(gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+
+    return binary_image
+
+def extract_text_from_image(image):
+    # Run tesseract OCR on the image
+    text = pytesseract.image_to_string(image)
+
     return text
 
-def write_to_notepad(filename, text):
-    """
-    This function will write the extracted text into a notepad file.
-    """
+def write_to_file(text, filename):
+    # Write the extracted text to a file
     with open(filename, 'w') as f:
         f.write(text)
 
-text = ocr_core('path_to_your_image.jpg')
-write_to_notepad('output.txt', text)
+# Preprocess the image
+processed_image = preprocess_image('path_to_your_image.jpg')
+
+# Extract text from the image
+text = extract_text_from_image(processed_image)
+
+# Write the extracted text to a file
+write_to_file(text, 'output.txt')
