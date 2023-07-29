@@ -1,0 +1,25 @@
+try:
+    from PIL import Image
+except ImportError:
+    import Image
+import pytesseract
+
+# You may need to update the path depending on where your tesseract executable is located
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract'
+
+def ocr_core(filename):
+    """
+    This function will handle the core OCR processing of images.
+    """
+    text = pytesseract.image_to_string(Image.open(filename))  # We'll use Pillow's Image class to open the image and pytesseract to detect the string in the image
+    return text
+
+def write_to_notepad(filename, text):
+    """
+    This function will write the extracted text into a notepad file.
+    """
+    with open(filename, 'w') as f:
+        f.write(text)
+
+text = ocr_core('path_to_your_image.jpg')
+write_to_notepad('output.txt', text)
